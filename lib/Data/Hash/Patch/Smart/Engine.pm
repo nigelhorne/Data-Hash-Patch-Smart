@@ -3,6 +3,7 @@ package Data::Hash::Patch::Smart::Engine;
 use strict;
 use warnings;
 
+use Scalar::Util qw(refaddr);
 use Storable qw(dclone);
 
 sub patch {
@@ -29,10 +30,10 @@ sub _apply_change {
 	# Leaf is the last segment; parent is everything before it
 	my $leaf  = pop @parts;
 
-    # Structural wildcard (in parent path)
-    if (grep { $_ eq '*' } @parts) {
-        return _apply_structural_wildcard($root, \@parts, $leaf, $c, $opts);
-    }
+	# Structural wildcard (in parent path)
+	if (grep { $_ eq '*' } @parts) {
+		return _apply_structural_wildcard($root, \@parts, $leaf, $c, $opts);
+	}
 
 	# Walk down to the parent container (hash or array)
 	my $parent = _walk_to_parent($root, \@parts, $leaf, $opts);
@@ -348,57 +349,66 @@ sub _apply_wildcard {
 }
 
 sub _apply_structural_wildcard {
-    my ($cur, $parts, $leaf, $change, $opts, $depth) = @_;
+	my ($cur, $parts, $leaf, $change, $opts, $depth, $seen) = @_;
 
-    $depth //= 0;
+	$depth //= 0;
+	$seen  ||= {};
 
-    # If we've matched all wildcard segments, we are at the parent of the leaf.
-    if ($depth == @$parts) {
-        return _apply_leaf_op($cur, $leaf, $change, $opts);
-    }
+	# Detect cycles
+	if (ref($cur)) {
+		my $addr = refaddr($cur);
+		if ($seen->{$addr}++) {
+			die "Cycle detected during wildcard patch"
+				if $opts->{strict};
+			return;
+		}
+	}
 
-    my $seg = $parts->[$depth];
+	# If we've matched all wildcard segments, apply leaf op
+	if ($depth == @$parts) {
+		return _apply_leaf_op($cur, $leaf, $change, $opts);
+	}
 
-    # Literal segment
-    if ($seg ne '*') {
-        if (ref($cur) eq 'HASH' && exists $cur->{$seg}) {
-            _apply_structural_wildcard($cur->{$seg}, $parts, $leaf, $change, $opts, $depth+1);
-        }
-        elsif (ref($cur) eq 'ARRAY' && $seg =~ /^\d+$/ && $seg <= $#$cur) {
-            _apply_structural_wildcard($cur->[$seg], $parts, $leaf, $change, $opts, $depth+1);
-        }
-        return;
-    }
+	my $seg = $parts->[$depth];
 
-    # Wildcard segment
-    if (ref($cur) eq 'HASH') {
-        for my $k (keys %$cur) {
-            _apply_structural_wildcard($cur->{$k}, $parts, $leaf, $change, $opts, $depth+1);
-        }
-    }
-    elsif (ref($cur) eq 'ARRAY') {
-        for my $i (0 .. $#$cur) {
-            _apply_structural_wildcard($cur->[$i], $parts, $leaf, $change, $opts, $depth+1);
-        }
-    }
+	# Literal segment
+	if ($seg ne '*') {
+		if (ref($cur) eq 'HASH' && exists $cur->{$seg}) {
+			_apply_structural_wildcard($cur->{$seg}, $parts, $leaf, $change, $opts, $depth+1, $seen);
+		}
+		elsif (ref($cur) eq 'ARRAY' && $seg =~ /^\d+$/ && $seg <= $#$cur) {
+			_apply_structural_wildcard($cur->[$seg], $parts, $leaf, $change, $opts, $depth+1, $seen);
+		}
+		return;
+	}
+
+	# Wildcard segment
+	if (ref($cur) eq 'HASH') {
+		for my $k (keys %$cur) {
+			_apply_structural_wildcard($cur->{$k}, $parts, $leaf, $change, $opts, $depth+1, $seen);
+		}
+	} elsif (ref($cur) eq 'ARRAY') {
+		for my $i (0 .. $#$cur) {
+			_apply_structural_wildcard($cur->[$i], $parts, $leaf, $change, $opts, $depth+1, $seen);
+		}
+	}
 }
 
+
 sub _apply_leaf_op {
-    my ($parent, $leaf, $change, $opts) = @_;
+	my ($parent, $leaf, $change, $opts) = @_;
 
-    my $op = $change->{op};
+	my $op = $change->{op};
 
-    if ($op eq 'change') {
-        return _set_value($parent, $leaf, $change->{to}, $opts);
-    }
-    elsif ($op eq 'add') {
-        return _add_value($parent, $leaf, $change->{value}, $opts);
-    }
-    elsif ($op eq 'remove') {
-        return _remove_value($parent, $leaf, $opts);
-    }
+	if ($op eq 'change') {
+		return _set_value($parent, $leaf, $change->{to}, $opts);
+	} elsif ($op eq 'add') {
+		return _add_value($parent, $leaf, $change->{value}, $opts);
+	} elsif ($op eq 'remove') {
+		return _remove_value($parent, $leaf, $opts);
+	}
 
-    die "Unsupported op '$op' in wildcard patch";
+	die "Unsupported op '$op' in wildcard patch";
 }
 
 1;
