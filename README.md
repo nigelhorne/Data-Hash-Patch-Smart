@@ -109,8 +109,69 @@ with the modifications applied.
 
     Enables unordered array semantics for leaf `*` paths.
 
+# AUTHOR
+
+Nigel Horne, `<njh at nigelhorne.com>`
+
+# BUGS
+
 # SEE ALSO
 
 [Data::Hash::Diff::Smart](https://metacpan.org/pod/Data%3A%3AHash%3A%3ADiff%3A%3ASmart)
 
-1;
+# REPOSITORY
+
+[https://github.com/nigelhorne/Data-Hash-Patch-Smart](https://github.com/nigelhorne/Data-Hash-Patch-Smart)
+
+# SUPPORT
+
+This module is provided as-is without any warranty.
+
+Please report any bugs or feature requests to `bug-data-hash-patch-smart at rt.cpan.org`,
+or through the web interface at
+[http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-Hash-Patch-Smart](http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-Hash-Patch-Smart).
+I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Data::Hash::Patch::Smart
+
+You can also look for information at:
+
+- MetaCPAN
+
+    [https://metacpan.org/dist/Data-Hash-Patch-Smart](https://metacpan.org/dist/Data-Hash-Patch-Smart)
+
+- RT: CPAN's request tracker
+
+    [https://rt.cpan.org/NoAuth/Bugs.html?Dist=Data-Hash-Patch-Smart](https://rt.cpan.org/NoAuth/Bugs.html?Dist=Data-Hash-Patch-Smart)
+
+- CPAN Testers' Matrix
+
+    [http://matrix.cpantesters.org/?dist=Data-Hash-Patch-Smart](http://matrix.cpantesters.org/?dist=Data-Hash-Patch-Smart)
+
+- CPAN Testers Dependencies
+
+    [http://deps.cpantesters.org/?module=Data::Hash::Patch::Smart](http://deps.cpantesters.org/?module=Data::Hash::Patch::Smart)
+
+# LICENCE AND COPYRIGHT
+
+Copyright 2010-2026 Nigel Horne.
+
+Usage is subject to licence terms.
+
+The licence terms of this software are as follows:
+
+- Personal single user, single computer use: GPL2
+- All other users (including Commercial, Charity, Educational, Government)
+  must apply in writing for a licence for use from Nigel Horne at the
+  above e-mail.
+
+# POD ERRORS
+
+Hey! **The above document had some coding errors, which are explained below:**
+
+- Around line 189:
+
+    &#x3d;back without =over

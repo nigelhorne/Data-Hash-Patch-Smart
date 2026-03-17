@@ -176,8 +176,76 @@ sub patch {
 	return Data::Hash::Patch::Smart::Engine::patch($data, $changes, %opts);
 }
 
+=head1 AUTHOR
+
+Nigel Horne, C<< <njh at nigelhorne.com> >>
+
+=head1 BUGS
+
 =head1 SEE ALSO
 
 L<Data::Hash::Diff::Smart>
+
+=back
+
+=head1 REPOSITORY
+
+L<https://github.com/nigelhorne/Data-Hash-Patch-Smart>
+
+=head1 SUPPORT
+
+This module is provided as-is without any warranty.
+
+Please report any bugs or feature requests to C<bug-data-hash-patch-smart at rt.cpan.org>,
+or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-Hash-Patch-Smart>.
+I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Data::Hash::Patch::Smart
+
+You can also look for information at:
+
+=over 4
+
+=item * MetaCPAN
+
+L<https://metacpan.org/dist/Data-Hash-Patch-Smart>
+
+=item * RT: CPAN's request tracker
+
+L<https://rt.cpan.org/NoAuth/Bugs.html?Dist=Data-Hash-Patch-Smart>
+
+=item * CPAN Testers' Matrix
+
+L<http://matrix.cpantesters.org/?dist=Data-Hash-Patch-Smart>
+
+=item * CPAN Testers Dependencies
+
+L<http://deps.cpantesters.org/?module=Data::Hash::Patch::Smart>
+
+=back
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright 2010-2026 Nigel Horne.
+
+Usage is subject to licence terms.
+
+The licence terms of this software are as follows:
+
+=over 4
+
+=item * Personal single user, single computer use: GPL2
+
+=item * All other users (including Commercial, Charity, Educational, Government)
+  must apply in writing for a licence for use from Nigel Horne at the
+  above e-mail.
+
+=back
+
+=cut
 
 1;
