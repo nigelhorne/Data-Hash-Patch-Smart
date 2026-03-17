@@ -375,8 +375,7 @@ sub _apply_structural_wildcard {
 	if ($seg ne '*') {
 		if (ref($cur) eq 'HASH' && exists $cur->{$seg}) {
 			_apply_structural_wildcard($cur->{$seg}, $parts, $leaf, $change, $opts, $depth+1, $seen);
-		}
-		elsif (ref($cur) eq 'ARRAY' && $seg =~ /^\d+$/ && $seg <= $#$cur) {
+		} elsif (ref($cur) eq 'ARRAY' && $seg =~ /^\d+$/ && $seg <= $#$cur) {
 			_apply_structural_wildcard($cur->[$seg], $parts, $leaf, $change, $opts, $depth+1, $seen);
 		}
 		return;
