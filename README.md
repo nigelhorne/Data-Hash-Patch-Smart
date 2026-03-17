@@ -1,0 +1,1 @@
+# Data-Hash-Patch-Smart
