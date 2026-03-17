@@ -186,8 +186,6 @@ Nigel Horne, C<< <njh at nigelhorne.com> >>
 
 L<Data::Hash::Diff::Smart>
 
-=back
-
 =head1 REPOSITORY
 
 L<https://github.com/nigelhorne/Data-Hash-Patch-Smart>

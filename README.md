@@ -167,11 +167,3 @@ The licence terms of this software are as follows:
 - All other users (including Commercial, Charity, Educational, Government)
   must apply in writing for a licence for use from Nigel Horne at the
   above e-mail.
-
-# POD ERRORS
-
-Hey! **The above document had some coding errors, which are explained below:**
-
-- Around line 189:
-
-    &#x3d;back without =over
