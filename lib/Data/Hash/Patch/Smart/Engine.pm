@@ -306,18 +306,15 @@ sub _apply_wildcard {
 		if ($op eq 'change') {
 			# Replace the entire subtree
 			return $change->{to};
-		}
-		elsif ($op eq 'add') {
+		} elsif ($op eq 'add') {
 			# For wildcard add, we push into arrays or set hash keys
 			# but since wildcard leafs are ambiguous, we do nothing here.
 			# Wildcard adds are only meaningful when the leaf is '*'
 			return $cur;
-		}
-		elsif ($op eq 'remove') {
+		} elsif ($op eq 'remove') {
 			# Remove the entire subtree
 			return undef;
-		}
-		else {
+		} else {
 			die "Unsupported wildcard op: $op";
 		}
 	}
@@ -328,8 +325,7 @@ sub _apply_wildcard {
 	if ($seg ne '*') {
 		if (ref($cur) eq 'HASH' && exists $cur->{$seg}) {
 			$cur->{$seg} = _apply_wildcard($cur->{$seg}, $parts, $change, $opts, $depth+1);
-		}
-		elsif (ref($cur) eq 'ARRAY' && $seg =~ /^\d+$/ && $seg <= $#$cur) {
+		} elsif (ref($cur) eq 'ARRAY' && $seg =~ /^\d+$/ && $seg <= $#$cur) {
 			$cur->[$seg] = _apply_wildcard($cur->[$seg], $parts, $change, $opts, $depth+1);
 		}
 		return;
