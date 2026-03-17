@@ -5,4 +5,3 @@ Revision history for Data-Hash-Patch-Smart
     - Supports structural wildcards, unordered arrays, strict mode,
       create_missing, cycle-safe wildcard traversal.
     - Full test suite and documentation.
-	
