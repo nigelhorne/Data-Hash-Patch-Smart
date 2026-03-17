@@ -12,6 +12,14 @@ our @EXPORT_OK = qw(patch);
 
 Data::Hash::Patch::Smart - Apply structural, wildcard, and array-aware patches to Perl data structures
 
+=head1 VERSION
+
+Version 0.01
+
+=cut
+
+our $VERSION = '0.01';
+
 =head1 SYNOPSIS
 
     use Data::Hash::Patch::Smart qw(patch);

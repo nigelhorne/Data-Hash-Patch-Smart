@@ -2,6 +2,10 @@
 
 Data::Hash::Patch::Smart - Apply structural, wildcard, and array-aware patches to Perl data structures
 
+# VERSION
+
+Version 0.01
+
 # SYNOPSIS
 
     use Data::Hash::Patch::Smart qw(patch);
