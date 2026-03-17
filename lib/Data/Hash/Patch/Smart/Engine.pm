@@ -21,14 +21,14 @@ sub patch {
 sub _apply_change {
 	my ($root, $c, $opts) = @_;
 
-	my $op   = $c->{op}   or die "change missing op";
-	my $path = $c->{path} or die "change missing path";
+	my $op = $c->{op} or die 'change missing op';
+	my $path = $c->{path} or die 'change missing path';
 
 	# Split path into segments like ('items', '0') or ('items', '*')
 	my @parts = _split_path($path);
 
 	# Leaf is the last segment; parent is everything before it
-	my $leaf  = pop @parts;
+	my $leaf = pop @parts;
 
 	# Structural wildcard (in parent path)
 	if (grep { $_ eq '*' } @parts) {
@@ -42,11 +42,9 @@ sub _apply_change {
 	if ($leaf eq '*') {
 		if ($op eq 'add') {
 			_add_unordered($parent, $c->{value}, $opts);
-		}
-		elsif ($op eq 'remove') {
+		} elsif ($op eq 'remove') {
 			_remove_unordered($parent, $c->{from}, $opts);
-		}
-		else {
+		} else {
 			die "Unsupported op '$op' for unordered path '$path'";
 		}
 		return;
@@ -55,20 +53,18 @@ sub _apply_change {
 	# Normal index/hash semantics
 	if ($op eq 'change') {
 		_set_value($parent, $leaf, $c->{to}, $opts);
-	}
-	elsif ($op eq 'add') {
+	} elsif ($op eq 'add') {
 		_add_value($parent, $leaf, $c->{value}, $opts);
-	}
-	elsif ($op eq 'remove') {
+	} elsif ($op eq 'remove') {
 		_remove_value($parent, $leaf, $opts);
-	}
-	else {
+	} else {
 		die "Unsupported op: $op";
 	}
 }
 
 sub _split_path {
-	my ($path) = @_;
+	my $path = $_[0];
+
 	return () if !defined $path || $path eq '';
 	my @parts = grep { length $_ } split m{/}, $path;
 	return @parts;
@@ -83,7 +79,7 @@ sub _walk_to_parent {
 
 	# Walk all segments that lead to the parent of $leaf
 	for (my $i = 0; $i < @$parts; $i++) {
-		my $p	   = $parts->[$i];
+		my $p	= $parts->[$i];
 		my $is_last = ($i == $#$parts);
 
 		# For container creation, "next" is either the next part,
@@ -225,7 +221,7 @@ sub _add_value {
 		return;
 	}
 
-	die "Strict mode: cannot add value to non-container" if $opts->{strict};
+	die 'Strict mode: cannot add value to non-container' if $opts->{strict};
 }
 
 sub _remove_value {
@@ -247,18 +243,15 @@ sub _remove_value {
 		return;
 	}
 
-	die "Strict mode: cannot remove value from non-container"
-		if $opts->{strict};
+	die 'Strict mode: cannot remove value from non-container' if $opts->{strict};
 }
-
 
 # Add a value to an unordered array.
 # We treat the parent as an arrayref and simply push the new value.
 sub _add_unordered {
 	my ($parent, $value) = @_;
 
-	die "Unordered add requires an array parent"
-		unless ref($parent) eq 'ARRAY';
+	die 'Unordered add requires an array parent' unless ref($parent) eq 'ARRAY';
 
 	push @$parent, $value;
 }
@@ -348,7 +341,7 @@ sub _apply_structural_wildcard {
 	my ($cur, $parts, $leaf, $change, $opts, $depth, $seen) = @_;
 
 	$depth //= 0;
-	$seen  ||= {};
+	$seen ||= {};
 
 	# Detect cycles
 	if (ref($cur)) {
