@@ -19,6 +19,7 @@ t/integration_mixed_nesting.t
 t/integration_roundtrip.t
 t/integration_unordered.t
 t/integration_wildcards.t
+t/kwalitee.t
 t/roundtrip.t
 t/strict.t
 t/wildcard_comprehensive.t
