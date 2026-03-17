@@ -23,12 +23,13 @@ sub _apply_change {
     my $op   = $c->{op}   or die "change missing op";
     my $path = $c->{path} or die "change missing path";
 
-    # Split path into segments
+    # Split path into segments like ('items', '0') or ('items', '*')
     my @parts = _split_path($path);
 
     # Leaf is the last segment; parent is everything before it
     my $leaf  = pop @parts;
 
+    # Walk down to the parent container (hash or array)
     my $parent = _walk_to_parent($root, \@parts, $opts);
 
     # Unordered array semantics: leaf is '*'
@@ -59,6 +60,7 @@ sub _apply_change {
         die "Unsupported op: $op";
     }
 }
+
 
 sub _split_path {
     my ($path) = @_;
@@ -165,5 +167,65 @@ sub _remove_unordered {
     # Later we can add a 'strict' option to turn this into a fatal error.
 }
 
+# Apply a change to all paths matching a wildcard pattern.
+# Example pattern: ['users', '*', 'password']
+#
+# We recursively walk the data structure, matching literal segments
+# and branching on '*' segments.
+sub _apply_wildcard {
+    my ($cur, $parts, $change, $opts, $depth) = @_;
+
+    $depth //= 0;
+
+    # If we've consumed all parts, we are at the leaf.
+    if ($depth == @$parts) {
+        # Apply the operation to this exact location.
+        # We treat this as a non-wildcard leaf.
+        my $op = $change->{op};
+
+        if ($op eq 'change') {
+            # Replace the entire subtree
+            return $change->{to};
+        }
+        elsif ($op eq 'add') {
+            # For wildcard add, we push into arrays or set hash keys
+            # but since wildcard leafs are ambiguous, we do nothing here.
+            # Wildcard adds are only meaningful when the leaf is '*'
+            return $cur;
+        }
+        elsif ($op eq 'remove') {
+            # Remove the entire subtree
+            return undef;
+        }
+        else {
+            die "Unsupported wildcard op: $op";
+        }
+    }
+
+    my $seg = $parts->[$depth];
+
+    # Literal segment: descend into matching child
+    if ($seg ne '*') {
+        if (ref($cur) eq 'HASH' && exists $cur->{$seg}) {
+            $cur->{$seg} = _apply_wildcard($cur->{$seg}, $parts, $change, $opts, $depth+1);
+        }
+        elsif (ref($cur) eq 'ARRAY' && $seg =~ /^\d+$/ && $seg <= $#$cur) {
+            $cur->[$seg] = _apply_wildcard($cur->[$seg], $parts, $change, $opts, $depth+1);
+        }
+        return;
+    }
+
+    # Wildcard segment: match all children at this level
+    if (ref($cur) eq 'HASH') {
+        for my $k (sort keys %$cur) {
+            $cur->{$k} = _apply_wildcard($cur->{$k}, $parts, $change, $opts, $depth+1);
+        }
+    }
+    elsif (ref($cur) eq 'ARRAY') {
+        for my $i (0 .. $#$cur) {
+            $cur->[$i] = _apply_wildcard($cur->[$i], $parts, $change, $opts, $depth+1);
+        }
+    }
+}
 
 1;
