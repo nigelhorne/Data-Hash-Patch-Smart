@@ -30,7 +30,7 @@ sub _apply_change {
 	my $leaf  = pop @parts;
 
 	# Walk down to the parent container (hash or array)
-	my $parent = _walk_to_parent($root, \@parts, $opts);
+	my $parent = _walk_to_parent($root, \@parts, $leaf, $opts);
 
 	# Unordered array semantics: leaf is '*'
 	if ($leaf eq '*') {
@@ -69,52 +69,102 @@ sub _split_path {
 }
 
 # Walk down the structure following the given path segments,
-# stopping at the parent of the leaf. In strict mode, we die
-# on invalid paths or type mismatches.
+# stopping at the parent of the leaf. In strict mode, we die on
+# invalid paths. With create_missing => 1, we auto-create
+# intermediate hashes/arrays as needed.
 sub _walk_to_parent {
-	my ($cur, $parts, $opts) = @_;
+    my ($cur, $parts, $leaf, $opts) = @_;
 
-	for my $p (@$parts) {
+    # Walk all segments that lead to the parent of $leaf
+    for (my $i = 0; $i < @$parts; $i++) {
+        my $p      = $parts->[$i];
+        my $is_last = ($i == $#$parts);
 
-		# Undefined parent: invalid path
-		if (!defined $cur) {
-			die "Invalid path: encountered undef while walking"
-				if $opts->{strict};
-			return undef;
-		}
+        # For container creation, "next" is either the next part,
+        # or, if we're at the last part, the leaf segment.
+        my $next = $is_last ? $leaf : $parts->[$i + 1];
 
-		# Hash navigation
-		if (ref($cur) eq 'HASH') {
-			if (!exists $cur->{$p}) {
-				die "Invalid path: missing hash key '$p'"
-					if $opts->{strict};
-				return undef;
-			}
-			$cur = $cur->{$p};
-			next;
-		}
+        # -----------------------------
+        # HASH navigation
+        # -----------------------------
+        if (ref($cur) eq 'HASH') {
 
-		# Array navigation
-		if (ref($cur) eq 'ARRAY') {
-			if ($p !~ /^\d+$/ || $p > $#$cur) {
-				die "Invalid path: array index '$p' out of bounds"
-					if $opts->{strict};
-				return undef;
-			}
-			$cur = $cur->[$p];
-			next;
-		}
+            # Missing key
+            if (!exists $cur->{$p}) {
+                if ($opts->{create_missing}) {
+                    # Decide container type based on what comes after
+                    if (defined $next && $next =~ /^\d+$/) {
+                        $cur->{$p} = [];
+                    } else {
+                        $cur->{$p} = {};
+                    }
+                }
+                elsif ($opts->{strict}) {
+                    die "Invalid path: missing hash key '$p'";
+                }
+                else {
+                    return undef;
+                }
+            }
 
-		# Not a container
-		die "Invalid path: cannot descend into non-container"
-			if $opts->{strict};
+            $cur = $cur->{$p};
+            next;
+        }
 
-		return undef;
-	}
+        # -----------------------------
+        # ARRAY navigation
+        # -----------------------------
+        if (ref($cur) eq 'ARRAY') {
 
-	return $cur;
+            # Index must be numeric
+            if ($p !~ /^\d+$/) {
+                die "Invalid path: non-numeric array index '$p'"
+                    if $opts->{strict};
+                return undef;
+            }
+
+            # Out of bounds
+            if ($p > $#$cur) {
+                if ($opts->{create_missing}) {
+                    # Extend array
+                    $#$cur = $p;
+
+                    # Decide container type for this new slot
+                    if (defined $next && $next =~ /^\d+$/) {
+                        $cur->[$p] = [];
+                    } else {
+                        $cur->[$p] = {};
+                    }
+                }
+                elsif ($opts->{strict}) {
+                    die "Invalid path: array index '$p' out of bounds";
+                }
+                else {
+                    return undef;
+                }
+            }
+
+            $cur = $cur->[$p];
+            next;
+        }
+
+        # -----------------------------
+        # Undef or non-container
+        # -----------------------------
+        if (!defined $cur) {
+            die "Invalid path: encountered undef while walking"
+                if $opts->{strict};
+            return undef;
+        }
+
+        die "Invalid path: cannot descend into non-container"
+            if $opts->{strict};
+
+        return undef;
+    }
+
+    return $cur;
 }
-
 
 sub _set_value {
 	my ($parent, $leaf, $value, $opts) = @_;
@@ -136,8 +186,7 @@ sub _set_value {
 		return;
 	}
 
-	die "Strict mode: cannot set value on non-container"
-		if $opts->{strict};
+	die 'Strict mode: cannot set value on non-container' if $opts->{strict};
 }
 
 sub _add_value {
@@ -151,12 +200,23 @@ sub _add_value {
 		return;
 	}
 
-	if (ref($parent) eq 'ARRAY') {
-		if ($leaf !~ /^\d+$/) {
-			die "Strict mode: invalid array index '$leaf'";
-		}
-		splice @$parent, $leaf, 0, $value;
-		return;
+if (ref($parent) eq 'ARRAY') {
+
+    # Leaf must be numeric
+    if ($leaf !~ /^\d+$/) {
+        die "Strict mode: invalid array index '$leaf'"
+            if $opts->{strict};
+        return;
+    }
+
+    # Extend array if needed
+    if ($leaf > $#$parent) {
+        $#$parent = $leaf;
+    }
+
+    # Insert value at exact index
+    $parent->[$leaf] = $value;
+    return;
 	}
 
 	die "Strict mode: cannot add value to non-container"
