@@ -228,7 +228,7 @@ L<http://deps.cpantesters.org/?module=Data::Hash::Patch::Smart>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright 2010-2026 Nigel Horne.
+Copyright 2026 Nigel Horne.
 
 Usage is subject to licence terms.
 
